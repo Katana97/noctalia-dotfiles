@@ -1,0 +1,8 @@
+# You can make apps auto-start here
+# Relevant Hyprland wiki section: https://wiki.hyprland.org/Configuring/Keywords/#executing
+
+# Input method
+# exec-once = fcitx5
+
+exec-once = gnome-keyring-daemon --start --components=secrets
+exec-once = mpvpaper -o 'loop --no-audio' eDP-1 ~/Pictures/Wallpapers/parallax/workspace_1.mp4
