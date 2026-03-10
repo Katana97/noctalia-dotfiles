@@ -1,0 +1,2 @@
+# Auto-authorise Razer Core X
+ACTION=="add", SUBSYSTEM=="thunderbolt", ATTR{vendor}=="0x127", ATTR{device}=="0x1", ATTR{authorized}="1"

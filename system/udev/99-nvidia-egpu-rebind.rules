@@ -1,0 +1,3 @@
+# Rebind NVIDIA driver when eGPU reconnects via Thunderbolt
+ACTION=="add", SUBSYSTEM=="pci", ATTR{vendor}=="0x10de", ATTR{class}=="0x030200", RUN+="/bin/bash -c 'echo 0000:08:00.0 > /sys/bus/pci/drivers/nvidia/bind'"
+ACTION=="add", SUBSYSTEM=="pci", ATTR{vendor}=="0x10de", ATTR{class}=="0x030000", RUN+="/bin/bash -c 'echo 0000:08:00.0 > /sys/bus/pci/drivers/nvidia/bind'"
