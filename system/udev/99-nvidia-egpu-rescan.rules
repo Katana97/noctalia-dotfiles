@@ -1,0 +1,2 @@
+# Trigger PCI rescan when Razer Core X is authorised via Thunderbolt
+ACTION=="add", SUBSYSTEM=="thunderbolt", ATTR{vendor}=="0x127", ATTR{device}=="0x1", RUN+="/bin/bash -c 'sleep 2 && echo 1 > /sys/bus/pci/rescan'"
