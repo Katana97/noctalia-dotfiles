@@ -25,7 +25,7 @@
 # =============================================================================
 
 MODULE="cursors"
-CURSOR_SIZE=28
+CURSOR_SIZE="${CURSOR_SIZE:-28}"
 OREO_DIR="$HOME/oreo-cursors"
 ICONS_DIR="$HOME/.local/share/icons"
 XCURSOR_COMPAT_DIR="$HOME/.icons"   # GTK fallback location
@@ -162,16 +162,128 @@ version = 0.1
 cursors_directory = hyprcursors
 EOF
 
-# For each SVG, create a shape directory with the SVG and a meta.hl
+# ---------------------------------------------------------------------------
+# Hotspot table — fractional coordinates (0.0–1.0) within the 32×32 viewBox
+#
+# Hyprcursor hotspots are fractions of the SVG canvas size, applied after
+# scaling. They are display-independent — correct at any CURSOR_SIZE or DPI.
+#
+# These values were derived by inspecting the oreo SVG path geometry
+# (all cursors use viewBox="0 0 32 32") and empirically verified at size 28.
+#
+# HOW TO RECALIBRATE (if you replace oreo with a different cursor set):
+#   1. Open a cursor SVG in Inkscape or a text editor
+#   2. Find the visual tip/hotspot coordinate in the path data
+#   3. Divide by the viewBox dimension: hotspot_x = tip_x / width,
+#      hotspot_y = tip_y / height
+#   4. Wipe the cache, rebuild, and test:
+#        rm -rf ~/.local/share/icons/theme_oreo_noctalia_*_hyprcursor
+#        PRIMARY=<hex> ~/.local/bin/noctalia-cursors.sh
+#   5. If still off, adjust in 1-pixel increments (1/32 = 0.03125 per step)
+#
+# Key values for the oreo arrow cursor (default/left_ptr):
+#   SVG path starts at y≈1, but the visual tip centre sits at y≈3
+#   → hotspot_y = 3/32 = 0.09375  (empirically confirmed)
+#   Horizontal tip is at x≈6
+#   → hotspot_x = 6/32 = 0.1875   (confirmed correct)
+#
+# Cursors not in this table fall back to 0.5 0.5 (centre), which is correct
+# for symmetric cursors (crosshairs, spinners, resize arrows, etc.)
+# ---------------------------------------------------------------------------
+
 declare -A HOTSPOTS
-HOTSPOTS["crosshair"]="0.5 0.5"
-HOTSPOTS["cell"]="0.5 0.5"
-HOTSPOTS["color-picker"]="0.0 1.0"
-HOTSPOTS["zoom-in"]="0.5 0.5"
-HOTSPOTS["zoom-out"]="0.5 0.5"
-HOTSPOTS["all-scroll"]="0.5 0.5"
+
+# Arrow family
+HOTSPOTS["default"]="0.1875 0.09375"
+HOTSPOTS["left_ptr"]="0.1875 0.09375"
+HOTSPOTS["right_ptr"]="0.8125 0.09375"
+HOTSPOTS["center_ptr"]="0.5 0.03125"
+HOTSPOTS["up-arrow"]="0.5 0.03125"
+HOTSPOTS["down-arrow"]="0.5 0.96875"
+HOTSPOTS["left-arrow"]="0.03125 0.5"
+HOTSPOTS["right-arrow"]="0.96875 0.5"
+HOTSPOTS["sb_up_arrow"]="0.5 0.03125"
+HOTSPOTS["sb_down_arrow"]="0.5 0.96875"
+HOTSPOTS["sb_left_arrow"]="0.03125 0.5"
+HOTSPOTS["sb_right_arrow"]="0.96875 0.5"
+
+# Hand / pointer
+HOTSPOTS["pointer"]="0.4375 0.125"
+HOTSPOTS["openhand"]="0.5 0.5"
+
+# Text
+HOTSPOTS["text"]="0.5 0.15625"
+HOTSPOTS["vertical-text"]="0.15625 0.5"
+
+# Resize — edges
+HOTSPOTS["top_side"]="0.5 0.03125"
+HOTSPOTS["bottom_side"]="0.5 0.96875"
+HOTSPOTS["left_side"]="0.03125 0.5"
+HOTSPOTS["right_side"]="0.96875 0.5"
+HOTSPOTS["top_tee"]="0.5 0.03125"
+HOTSPOTS["bottom_tee"]="0.5 0.96875"
+HOTSPOTS["left_tee"]="0.03125 0.5"
+HOTSPOTS["right_tee"]="0.96875 0.5"
+
+# Resize — corners
+HOTSPOTS["top_left_corner"]="0.03125 0.03125"
+HOTSPOTS["top_right_corner"]="0.96875 0.03125"
+HOTSPOTS["bottom_left_corner"]="0.03125 0.96875"
+HOTSPOTS["bottom_right_corner"]="0.96875 0.96875"
+
+# Resize — diagonal / bidirectional
+HOTSPOTS["bd_double_arrow"]="0.46875 0.46875"
+HOTSPOTS["fd_double_arrow"]="0.53125 0.46875"
+HOTSPOTS["size_ver"]="0.5 0.5"
+HOTSPOTS["size_hor"]="0.5 0.5"
+HOTSPOTS["size_bdiag"]="0.5 0.5"
+HOTSPOTS["size_fdiag"]="0.5 0.5"
+HOTSPOTS["col-resize"]="0.5 0.5"
+HOTSPOTS["row-resize"]="0.5 0.5"
+
+# Move / all-scroll
 HOTSPOTS["fleur"]="0.5 0.5"
+HOTSPOTS["all-scroll"]="0.5 0.5"
 HOTSPOTS["move"]="0.5 0.5"
+
+# Crosshair family
+HOTSPOTS["crosshair"]="0.5 0.5"
+HOTSPOTS["tcross"]="0.5 0.5"
+HOTSPOTS["dotbox"]="0.5 0.5"
+HOTSPOTS["cell"]="0.5 0.5"
+
+# Special
+HOTSPOTS["color-picker"]="0.125 0.875"
+HOTSPOTS["pencil"]="0.0625 0.9375"
+HOTSPOTS["draft"]="0.0625 0.9375"
+HOTSPOTS["zoom-in"]="0.375 0.375"
+HOTSPOTS["zoom-out"]="0.375 0.375"
+HOTSPOTS["help"]="0.1875 0.09375"
+HOTSPOTS["context-menu"]="0.1875 0.09375"
+HOTSPOTS["pirate"]="0.5 0.5"
+HOTSPOTS["wayland-cursor"]="0.5 0.5"
+HOTSPOTS["x-cursor"]="0.5 0.5"
+
+# DnD / copy / no-drop (arrow + badge — tip same as default arrow)
+HOTSPOTS["alias"]="0.1875 0.09375"
+HOTSPOTS["dnd-link"]="0.1875 0.09375"
+HOTSPOTS["copy"]="0.1875 0.09375"
+HOTSPOTS["dnd-move"]="0.1875 0.09375"
+HOTSPOTS["dnd-ask"]="0.1875 0.09375"
+HOTSPOTS["dnd-no-drop"]="0.1875 0.09375"
+HOTSPOTS["no-drop"]="0.1875 0.09375"
+HOTSPOTS["not-allowed"]="0.1875 0.09375"
+HOTSPOTS["circle"]="0.1875 0.09375"
+
+# Animated — progress frames (arrow+spinner, tip same as arrow)
+for i in $(seq -f "%02g" 1 48); do
+    HOTSPOTS["progress-${i}"]="0.1875 0.09375"
+done
+
+# Animated — wait frames (spinner, centred)
+for i in $(seq -f "%02g" 1 48); do
+    HOTSPOTS["wait-${i}"]="0.5 0.5"
+done
 
 for svg in "$SVG_SRC"/*.svg; do
     shape=$(basename "$svg" .svg)
@@ -179,7 +291,7 @@ for svg in "$SVG_SRC"/*.svg; do
     mkdir -p "$shape_dir"
     cp "$svg" "$shape_dir/image.svg"
 
-    hotspot="${HOTSPOTS[$shape]:-0.0 0.0}"
+    hotspot="${HOTSPOTS[$shape]:-0.5 0.5}"
     hx=$(echo "$hotspot" | cut -d' ' -f1)
     hy=$(echo "$hotspot" | cut -d' ' -f2)
 
@@ -187,7 +299,7 @@ for svg in "$SVG_SRC"/*.svg; do
 resize_algorithm = bilinear
 hotspot_x = ${hx}
 hotspot_y = ${hy}
-define_size = 32, image.svg
+define_size = ${CURSOR_SIZE}, image.svg
 EOF
 done
 
