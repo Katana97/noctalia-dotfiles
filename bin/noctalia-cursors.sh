@@ -8,7 +8,7 @@
 #   3. Cache miss:
 #      a. Keep current cursor active
 #      b. Generate SVGs with ruby generator/convert.rb
-#      c. Build XCursor with bash build.sh (needed for GTK fallback)
+#      c. Build XCursor via rsvg-convert + xcursorgen (GTK/XWayland fallback)
 #      d. Build hyprcursor working-state from SVGs
 #      e. Compile with hyprcursor-util --create
 #      f. Cache both themes
@@ -66,8 +66,13 @@ if [ ! -f "$OREO_DIR/generator/convert.rb" ]; then
     exit 0
 fi
 
-if [ ! -f "$OREO_DIR/build.sh" ]; then
-    echo "[${MODULE}] skipped — build.sh not found in $OREO_DIR"
+if ! command -v xcursorgen &>/dev/null; then
+    echo "[${MODULE}] skipped — xcursorgen not found. Install with: sudo pacman -S xorg-xcursorgen"
+    exit 0
+fi
+
+if ! command -v rsvg-convert &>/dev/null; then
+    echo "[${MODULE}] skipped — rsvg-convert not found. Install with: sudo pacman -S librsvg"
     exit 0
 fi
 
@@ -121,52 +126,12 @@ fi
 
 echo "[${MODULE}] SVGs ready in $SVG_SRC"
 
-# --- Step 3: Build XCursor (GTK fallback) ------------------------------------
-echo "[${MODULE}] Building XCursor theme for GTK fallback (~18s)..."
-
-BACKUP_DIR="/tmp/oreo-src-backup-$$"
-mkdir -p "$BACKUP_DIR"
-find "$OREO_DIR/src/" -mindepth 1 -maxdepth 1 -type d \
-    ! -name "oreo_noctalia_${PRIMARY}_cursors" \
-    -exec mv {} "$BACKUP_DIR/" \;
-
-( cd "$OREO_DIR" && bash build.sh &>/dev/null )
-BUILD_STATUS=$?
-
-# Restore moved themes
-mv "$BACKUP_DIR"/*/ "$OREO_DIR/src/" 2>/dev/null
-rmdir "$BACKUP_DIR" 2>/dev/null
-
-if [ $BUILD_STATUS -ne 0 ]; then
-    echo "[${MODULE}] WARNING: XCursor build failed — GTK fallback unavailable"
-else
-    BUILT_XCURSOR="$OREO_DIR/dist/oreo_noctalia_${PRIMARY}_cursors"
-    if [ -d "$BUILT_XCURSOR" ]; then
-        cp -r "$BUILT_XCURSOR" "$XCURSOR_CACHE"
-        echo "[${MODULE}] XCursor theme cached at $XCURSOR_CACHE"
-    fi
-fi
-
-# --- Step 4: Build hyprcursor working-state from SVGs ------------------------
-echo "[${MODULE}] Building hyprcursor working-state..."
-
-WORK_DIR="/tmp/oreo_hypr_work_${PRIMARY}_$$"
-HYPR_CURSORS_DIR="$WORK_DIR/hyprcursors"
-mkdir -p "$WORK_DIR"
-
-# Write manifest — name must match HYPR_THEME_NAME so compiled dir = HYPR_COMPILED_NAME
-cat > "$WORK_DIR/manifest.hl" <<EOF
-name = ${HYPR_THEME_NAME}
-description = Oreo cursors in Noctalia primary colour #${PRIMARY}
-version = 0.1
-cursors_directory = hyprcursors
-EOF
-
 # ---------------------------------------------------------------------------
 # Hotspot table — fractional coordinates (0.0–1.0) within the 32×32 viewBox
 #
 # Hyprcursor hotspots are fractions of the SVG canvas size, applied after
 # scaling. They are display-independent — correct at any CURSOR_SIZE or DPI.
+# The same table is used for both the hyprcursor and XCursor builds.
 #
 # These values were derived by inspecting the oreo SVG path geometry
 # (all cursors use viewBox="0 0 32 32") and empirically verified at size 28.
@@ -276,14 +241,157 @@ HOTSPOTS["not-allowed"]="0.1875 0.09375"
 HOTSPOTS["circle"]="0.1875 0.09375"
 
 # Animated — progress frames (arrow+spinner, tip same as arrow)
-for i in $(seq -f "%02g" 1 48); do
-    HOTSPOTS["progress-${i}"]="0.1875 0.09375"
+for i in {1..48}; do
+    HOTSPOTS["progress-$(printf '%02d' $i)"]="0.1875 0.09375"
 done
 
 # Animated — wait frames (spinner, centred)
-for i in $(seq -f "%02g" 1 48); do
-    HOTSPOTS["wait-${i}"]="0.5 0.5"
+for i in {1..48}; do
+    HOTSPOTS["wait-$(printf '%02d' $i)"]="0.5 0.5"
 done
+# We build this ourselves rather than using build.sh because the oreo repo's
+# src/config/ directory (xcursorgen input files) is not present in the repo —
+# it requires a separate ruby generation step that isn't part of our flow.
+# Without src/config/, build.sh produces only a tree of dangling symlinks with
+# no actual cursor binaries, which causes XWayland apps to fall back to their
+# default cursor theme.
+#
+# Our approach: rasterise each SVG to PNG with rsvg-convert, write a .cursor
+# config with the correct hotspot in pixels, then run xcursorgen to produce
+# the binary. Hotspot pixels = round(fraction * CURSOR_SIZE).
+echo "[${MODULE}] Building XCursor theme via xcursorgen..."
+
+XCURSOR_BUILD_DIR="/tmp/oreo_xcursor_build_${PRIMARY}_$$"
+XCURSOR_OUT="$XCURSOR_BUILD_DIR/cursors"
+mkdir -p "$XCURSOR_OUT"
+
+# XCursor compat symlinks — maps legacy/hash names to canonical cursor names.
+# These are the X11 cursor name aliases that applications look up by hash.
+declare -A XCURSOR_ALIASES
+XCURSOR_ALIASES["00000000000000020006000e7e9ffc3f"]="progress"
+XCURSOR_ALIASES["00008160000006810000408080010102"]="sb_v_double_arrow"
+XCURSOR_ALIASES["028006030e0e7ebffc7f7070c0600140"]="sb_h_double_arrow"
+XCURSOR_ALIASES["03b6e0fcb3499374a867c041f52298f0"]="circle"
+XCURSOR_ALIASES["08e8e1c95fe2fc01f976f1e063a24ccd"]="progress"
+XCURSOR_ALIASES["1081e37283d90000800003c07f3ef6bf"]="copy"
+XCURSOR_ALIASES["14fef782d02440884392942c11205230"]="sb_h_double_arrow"
+XCURSOR_ALIASES["2870a09082c103050810ffdffffe0204"]="sb_v_double_arrow"
+XCURSOR_ALIASES["3085a0e285430894940527032f8b26df"]="alias"
+XCURSOR_ALIASES["3ecb610c1bf2410f44200f48c40d3599"]="progress"
+XCURSOR_ALIASES["4498f0e0c1937ffe01fd06f973665830"]="dnd-move"
+XCURSOR_ALIASES["5c6cd98b3f3ebcb1f9c7f1c204630408"]="help"
+XCURSOR_ALIASES["6407b0e94181790501fd1e167b474872"]="copy"
+XCURSOR_ALIASES["640fb0e74195791501fd1ed57b41487f"]="alias"
+XCURSOR_ALIASES["9081237383d90e509aa00f00170e968f"]="dnd-move"
+XCURSOR_ALIASES["9d800788f1b08800ae810202380a0822"]="pointer"
+XCURSOR_ALIASES["a2a266d0498c3104214a47bd64ab0fc8"]="alias"
+XCURSOR_ALIASES["a24d6e8de3e41c6e5e49d92bde34f3c9"]="dnd-move"
+XCURSOR_ALIASES["b66166c04f8c3109214a4fbd64a50fc8"]="copy"
+XCURSOR_ALIASES["d9ce0ab605698f320427677b458ad60b"]="help"
+XCURSOR_ALIASES["e29285e634086352946a0e7090d73106"]="pointer"
+XCURSOR_ALIASES["f22c3c73d4d46000a2da4de7042c3949"]="dnd-no-drop"
+XCURSOR_ALIASES["fcf21c00b30f7e3f83fe0dfd12e71cff"]="dnd-no-drop"
+# Standard name aliases
+XCURSOR_ALIASES["arrow"]="left_ptr"
+XCURSOR_ALIASES["default"]="left_ptr"
+XCURSOR_ALIASES["hand"]="pointer"
+XCURSOR_ALIASES["hand1"]="pointer"
+XCURSOR_ALIASES["hand2"]="pointer"
+XCURSOR_ALIASES["ibeam"]="text"
+XCURSOR_ALIASES["left_ptr_watch"]="progress"
+XCURSOR_ALIASES["watch"]="wait"
+XCURSOR_ALIASES["wait"]="wait"
+XCURSOR_ALIASES["crossed_circle"]="not-allowed"
+XCURSOR_ALIASES["forbidden"]="not-allowed"
+XCURSOR_ALIASES["grab"]="openhand"
+XCURSOR_ALIASES["grabbing"]="fleur"
+XCURSOR_ALIASES["n-resize"]="top_side"
+XCURSOR_ALIASES["s-resize"]="bottom_side"
+XCURSOR_ALIASES["e-resize"]="right_side"
+XCURSOR_ALIASES["w-resize"]="left_side"
+XCURSOR_ALIASES["ne-resize"]="top_right_corner"
+XCURSOR_ALIASES["nw-resize"]="top_left_corner"
+XCURSOR_ALIASES["se-resize"]="bottom_right_corner"
+XCURSOR_ALIASES["sw-resize"]="bottom_left_corner"
+XCURSOR_ALIASES["ns-resize"]="size_ver"
+XCURSOR_ALIASES["ew-resize"]="size_hor"
+XCURSOR_ALIASES["nesw-resize"]="size_bdiag"
+XCURSOR_ALIASES["nwse-resize"]="size_fdiag"
+XCURSOR_ALIASES["col-resize"]="col-resize"
+XCURSOR_ALIASES["row-resize"]="row-resize"
+XCURSOR_ALIASES["all-scroll"]="fleur"
+XCURSOR_ALIASES["zoom-in"]="zoom-in"
+XCURSOR_ALIASES["zoom-out"]="zoom-out"
+XCURSOR_ALIASES["sb_v_double_arrow"]="size_ver"
+XCURSOR_ALIASES["sb_h_double_arrow"]="size_hor"
+XCURSOR_ALIASES["progress"]="progress-01"
+XCURSOR_ALIASES["left_ptr"]="default"
+
+_round() {
+    python3 -c "print(round($1))"
+}
+
+# Build one XCursor binary per SVG
+for svg in "$SVG_SRC"/*.svg; do
+    shape=$(basename "$svg" .svg)
+
+    hotspot="${HOTSPOTS[$shape]:-0.5 0.5}"
+    hx_frac=$(echo "$hotspot" | cut -d' ' -f1)
+    hy_frac=$(echo "$hotspot" | cut -d' ' -f2)
+    hx_px=$(_round "$hx_frac * $CURSOR_SIZE")
+    hy_px=$(_round "$hy_frac * $CURSOR_SIZE")
+
+    png="$XCURSOR_BUILD_DIR/${shape}.png"
+    rsvg-convert -w "$CURSOR_SIZE" -h "$CURSOR_SIZE" "$svg" -o "$png" 2>/dev/null
+
+    if [ ! -f "$png" ]; then
+        echo "[${MODULE}] WARNING: rsvg-convert failed for $shape — skipping"
+        continue
+    fi
+
+    cursor_cfg="$XCURSOR_BUILD_DIR/${shape}.cursor"
+    echo "${CURSOR_SIZE} ${hx_px} ${hy_px} ${png}" > "$cursor_cfg"
+    xcursorgen "$cursor_cfg" "$XCURSOR_OUT/$shape"
+done
+
+# Write cursor.theme index
+mkdir -p "$XCURSOR_BUILD_DIR"
+cat > "$XCURSOR_BUILD_DIR/cursor.theme" <<EOF
+[Icon Theme]
+Name=${XCURSOR_THEME_NAME}
+EOF
+
+# Create compat symlinks — aliases pointing at canonical cursor binaries
+for alias in "${!XCURSOR_ALIASES[@]}"; do
+    target="${XCURSOR_ALIASES[$alias]}"
+    # Only create if target binary exists and alias doesn't already exist as a binary
+    if [ -f "$XCURSOR_OUT/$target" ] && [ ! -f "$XCURSOR_OUT/$alias" ]; then
+        ln -sf "$target" "$XCURSOR_OUT/$alias"
+    fi
+done
+
+# Copy to cache
+mkdir -p "$XCURSOR_CACHE"
+cp -r "$XCURSOR_OUT" "$XCURSOR_CACHE/cursors"
+cp "$XCURSOR_BUILD_DIR/cursor.theme" "$XCURSOR_CACHE/cursor.theme"
+rm -rf "$XCURSOR_BUILD_DIR"
+
+echo "[${MODULE}] XCursor theme built and cached at $XCURSOR_CACHE"
+
+# --- Step 4: Build hyprcursor working-state from SVGs ------------------------
+echo "[${MODULE}] Building hyprcursor working-state..."
+
+WORK_DIR="/tmp/oreo_hypr_work_${PRIMARY}_$$"
+HYPR_CURSORS_DIR="$WORK_DIR/hyprcursors"
+mkdir -p "$WORK_DIR"
+
+# Write manifest — name must match HYPR_THEME_NAME so compiled dir = HYPR_COMPILED_NAME
+cat > "$WORK_DIR/manifest.hl" <<EOF
+name = ${HYPR_THEME_NAME}
+description = Oreo cursors in Noctalia primary colour #${PRIMARY}
+version = 0.1
+cursors_directory = hyprcursors
+EOF
 
 for svg in "$SVG_SRC"/*.svg; do
     shape=$(basename "$svg" .svg)
