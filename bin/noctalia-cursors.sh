@@ -86,6 +86,9 @@ _apply_xcursor_fallback() {
         gsettings set org.gnome.desktop.interface cursor-theme "$XCURSOR_THEME_NAME" 2>/dev/null \
             || dconf write /org/gnome/desktop/interface/cursor-theme \
                "'${XCURSOR_THEME_NAME}'" 2>/dev/null
+        mkdir -p "$HOME/.config/gtk-3.0"
+        sed -i "s/^gtk-cursor-theme-name=.*/gtk-cursor-theme-name=${XCURSOR_THEME_NAME}/" "$HOME/.config/gtk-3.0/settings.ini"
+        sed -i "s/^gtk-cursor-theme-size=.*/gtk-cursor-theme-size=${CURSOR_SIZE}/" "$HOME/.config/gtk-3.0/settings.ini"
         echo "[${MODULE}] XCursor fallback set for GTK apps."
     fi
 }
