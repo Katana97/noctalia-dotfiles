@@ -1,0 +1,4 @@
+#!/bin/bash
+XCURSOR_THEME=$(gsettings get org.gnome.desktop.interface cursor-theme | tr -d "'")
+XCURSOR_SIZE=$(gsettings get org.gnome.desktop.interface cursor-size)
+exec env XCURSOR_THEME="$XCURSOR_THEME" XCURSOR_SIZE="$XCURSOR_SIZE" /usr/bin/steam "$@"
