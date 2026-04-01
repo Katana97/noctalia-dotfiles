@@ -14,6 +14,8 @@ MODULES_DIR="$HOME/.local/bin"
 ENABLE_BORDERS=true
 ENABLE_ICONS=true
 ENABLE_CURSORS=true
+ENABLE_QT=true
+ENABLE_PYWAL=false
 
 # --- Load user config if present ---------------------------------------------
 if [ -f "$CONFIG_FILE" ]; then
@@ -60,5 +62,7 @@ run_module() {
 $ENABLE_BORDERS && run_module "borders"
 $ENABLE_ICONS   && run_module "icons"
 $ENABLE_CURSORS && run_module "cursors"
+$ENABLE_QT    && run_module "qt"
+$ENABLE_PYWAL && run_module "pywal"
 
 echo "[noctalia-apply] Done."

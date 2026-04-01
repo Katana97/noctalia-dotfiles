@@ -57,3 +57,4 @@ cat > "$WAL_CACHE/colors.json" <<EOF
 EOF
 
 echo "[${MODULE}] ~/.cache/wal/colors.json written from Noctalia palette."
+pywalfox update
