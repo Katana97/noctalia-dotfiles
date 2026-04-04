@@ -83,6 +83,7 @@ mkdir -p "$XCURSOR_COMPAT_DIR"
 _apply_xcursor_fallback() {
     if [ -d "$XCURSOR_CACHE" ]; then
         ln -sfn "$XCURSOR_CACHE" "$XCURSOR_COMPAT_LINK"
+        ln -sfn "$XCURSOR_CACHE" "$HOME/.icons/oreo_noctalia_active_cursors"
         gsettings set org.gnome.desktop.interface cursor-theme "$XCURSOR_THEME_NAME" 2>/dev/null \
             || dconf write /org/gnome/desktop/interface/cursor-theme \
                "'${XCURSOR_THEME_NAME}'" 2>/dev/null
