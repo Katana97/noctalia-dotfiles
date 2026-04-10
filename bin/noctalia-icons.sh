@@ -18,7 +18,7 @@ if [ ! -d "$ICONS_SOURCE" ]; then
 fi
 
 # --- Cache check -------------------------------------------------------------
-CACHE_DIR="${ICONS_BASE}-${TERTIARY}"
+CACHE_DIR="${ICONS_BASE}-${TERTIARY}-${PRIMARY}"
 
 if [ -d "$CACHE_DIR" ]; then
     echo "[${MODULE}] Using cached icons for #${TERTIARY}"
@@ -39,6 +39,7 @@ sed -i \
         -e "s/color:#5294e2/color:#${TERTIARY}/gI" \
         -e "s/#5677fc/#${TERTIARY}/gI" \
         -e "s/#5294e2/#${TERTIARY}/gI" \
+        -e "s/\.ColorScheme-Text { color:#aaaaaa; }/.ColorScheme-Text { color:#${PRIMARY}; }/gI" \
         "$svg"
 done
 
