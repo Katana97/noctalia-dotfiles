@@ -1,104 +1,102 @@
 # Noctalia Theming System
+
 Automatic colour theming for CachyOS / Hyprland / Noctalia Shell.
-Recolours borders, icons, and cursors to match the active Noctalia colour scheme.
+Recolours borders, icons, cursors, Qt/KDE apps, and GTK Flatpaks to match the
+active Noctalia colour scheme.
 
 ## How It Works
+
 Noctalia writes the current colour scheme to `~/.config/noctalia/colors.json`.
 A watcher script (`noctalia-borders-watch.sh`) monitors that file for changes
 and triggers the apply script automatically whenever the colour scheme changes.
-The apply script reads the colours once and passes them to three modules:
+The apply script reads the colours once and passes them to all modules:
 
 ```
 colors.json → noctalia-apply.sh → noctalia-borders.sh
                                 → noctalia-icons.sh
                                 → noctalia-cursors.sh
+                                → noctalia-qt.sh  (→ noctalia-kvantum.py)
+                                → noctalia-pywal.sh  (optional)
 ```
+
+## Colour Variables
+
+`noctalia-apply.sh` exports these variables (without `#` prefix) for all modules:
+
+| Variable | JSON key | Used for |
+|---|---|---|
+| `PRIMARY` | `mPrimary` | Cursor colour, border start, symbolic icon colour |
+| `TERTIARY` | `mTertiary` | Folder icon colour, border end |
+| `SURFACE` | `mSurfaceVariant` | Inactive border colour |
+| `ON_SURFACE` | `mOnSurface` | Qt/KDE text colour |
 
 ## Scripts
 
 ### `noctalia-apply.sh`
 Orchestrator. Reads `colors.json`, exports colour variables, runs enabled modules.
-
-**Colours exported:**
-- `PRIMARY` — used for cursor colour and border gradient start
-- `TERTIARY` — used for icon colour and border gradient end
-- `SURFACE` — used for inactive border colour
-- `ON_SURFACE` — used for KDE selection foreground
+Always invoke modules through this script — running them standalone will result
+in empty colour variables and broken output.
 
 ### `noctalia-borders.sh`
 Sets Hyprland active/inactive border colours via `hyprctl keyword`.
 Also syncs KDE highlight colour via `kwriteconfig6` if available.
 
 ### `noctalia-icons.sh`
-Recolours Tela icon theme SVGs to match `TERTIARY`.
+Recolours Tela icon theme SVGs to match the current scheme.
 
-**Caching:** Recoloured icon sets are cached at
-`~/.local/share/icons/Tela-Noctalia-<hex>/`. On a cache hit the theme is
-applied instantly. The active theme is always symlinked to
-`~/.local/share/icons/Tela-Noctalia-Active`.
+**Colours replaced in SVGs:**
+- `ColorScheme-Highlight` → `TERTIARY` (folder accent colour)
+- `ColorScheme-Text` (`#aaaaaa`) → `PRIMARY` (symbolic/toolbar icon colour)
+- `#5294e2`, `#5677fc` → `TERTIARY`
 
-**Source:** Recolouring is done from `~/.local/share/icons/Tela-Noctalia-Source`.
-Do not modify the Active or cached variants directly — edit the Source instead.
+**Caching:** Recoloured sets cached at `~/.local/share/icons/Tela-Noctalia-<TERTIARY>-<PRIMARY>/`.
+Cache key includes both colours so any scheme change invalidates stale caches.
+Active theme always symlinked to `~/.local/share/icons/Tela-Noctalia-Active`.
 
-**Colours replaced:**
-- `ColorScheme-Highlight` fill → `TERTIARY`
-- `#5294e2` → `TERTIARY`
-- `#5677fc` → `TERTIARY` (glyph folder icons)
+**Source:** `~/.local/share/icons/Tela-Noctalia-Source` — do not modify cached
+or Active variants directly.
 
 ### `noctalia-cursors.sh`
-Generates Oreo cursor theme in `PRIMARY` colour, builds both XCursor (GTK
-fallback) and hyprcursor variants, and applies via `hyprctl setcursor`.
+Generates Oreo cursor theme in `PRIMARY` colour, builds XCursor and hyprcursor
+variants, applies via `hyprctl setcursor`.
 
-**Caching:** Built themes are cached at:
+**Caching:** Built themes cached at:
 - `~/.local/share/icons/theme_oreo_noctalia_<hex>_hyprcursor/` (Hyprland)
 - `~/.local/share/icons/oreo_noctalia_<hex>_cursors/` (GTK/XCursor)
 
-First run for a new colour takes ~20 seconds. Subsequent runs are instant.
+First run for a new colour ~20 seconds. Subsequent runs instant.
 
-**Theme naming:** Hyprland's hyprcursor format requires the `theme_` prefix and
-`_hyprcursor` suffix. Your `env.conf` and `execs.conf` must use the full compiled
-name, e.g. `theme_oreo_noctalia_76946a_hyprcursor`, not the XCursor name
-`oreo_noctalia_76946a_cursors`. These are different formats serving different
-purposes; mixing them up causes Hyprland to fall back to its built-in cursor.
+**Requires:** `ruby`, `hyprcursor-util`, `oreo-cursors` repo at `~/oreo-cursors`
 
-**Cursor size:** Controlled by `CURSOR_SIZE` in `noctalia-apply.conf` (default: 28).
-Must also match `XCURSOR_SIZE` and `HYPRCURSOR_SIZE` in `env.conf`.
+### `noctalia-qt.sh`
+Themes all Qt/KDE applications via Kvantum + qt6ct + kdeglobals.
 
-**Requires:**
-- `ruby` — SVG generation
-- `hyprcursor-util` — hyprcursor compilation
-- `oreo-cursors` repo cloned to `~/oreo-cursors`
+**Flow:**
+1. Runs `noctalia-kvantum.py` to rewrite Kvantum SVG and kvconfig with current colours
+2. Sets Kvantum theme to `noctalia-dark`
+3. Writes qt6ct colour scheme from `colors.json`
+4. Updates `qt6ct.conf` (style=kvantum, icon theme, colour scheme path)
+5. Writes full KDE colour scheme to `kdeglobals` for Dolphin, Okular etc.
 
-#### Hotspot calibration
+**Requires:** `kvantum-git`, `qt6ct`, `python3`, `jq`, `kwriteconfig6`
 
-Hyprcursor hotspots are stored as fractions of the SVG canvas (0.0–1.0) and
-are applied after scaling. They are **display-independent** — the same values
-are correct at any cursor size or display DPI.
+### `noctalia-kvantum.py`
+Python script called by `noctalia-qt.sh`. Rewrites the Colloid Kvantum SVG and
+kvconfig with Noctalia palette colours.
 
-The hotspot table in `noctalia-cursors.sh` was derived by inspecting the oreo
-SVG path geometry (all cursors use `viewBox="0 0 32 32"`) and empirically
-verified. The key arrow cursor values are:
+**What it replaces:**
+- Surface/background colours in the SVG
+- `[GeneralColors]` block in the kvconfig
+- All `text.normal.color`, `text.focus.color`, `text.inactive.color` keys
+  throughout all kvconfig sections — these are hardcoded in the Colloid source
+  and must be replaced explicitly
 
-| Cursor | hotspot_x | hotspot_y | Notes |
-|--------|-----------|-----------|-------|
-| `default` / `left_ptr` | 0.1875 | 0.09375 | Tip at x≈6, y≈3 in SVG |
-| `pointer` | 0.4375 | 0.125 | Fingertip at x≈14, y≈4 |
-| `text` | 0.5 | 0.15625 | Beam top, centred horizontally |
-| most others | 0.5 | 0.5 | Symmetric — centre is correct |
+**Source:** `~/.config/Kvantum/Colloid/ColloidDark.{svg,kvconfig}`
+**Output:** `~/.config/Kvantum/noctalia-dark/noctalia-dark.{svg,kvconfig}`
 
-**To recalibrate** (e.g. after switching to a different cursor set):
-
-1. Open a cursor SVG and find the visual tip coordinate in the path data
-2. Divide by the viewBox size: `hotspot_x = tip_x / 32`, `hotspot_y = tip_y / 32`
-3. Wipe the cache and rebuild:
-   ```bash
-   rm -rf ~/.local/share/icons/theme_oreo_noctalia_*_hyprcursor
-   PRIMARY=<hex> ~/.local/bin/noctalia-cursors.sh
-   ```
-4. If still slightly off, adjust in single-pixel steps: `1/32 = 0.03125` per step
-
-Note: the oreo SVG path for `default` starts at y=1.0 but the visual tip centre
-sits at y≈3 due to stroke weight and anti-aliasing. Always verify empirically.
+### `noctalia-pywal.sh` (optional)
+Writes a pywal-compatible `colors.json` to `~/.cache/wal/` and calls
+`pywalfox update` for Firefox theming. Disabled by default.
 
 ### `noctalia-borders-watch.sh`
 Watches `~/.config/noctalia/colors.json` with `inotifywait` and triggers
@@ -106,30 +104,102 @@ Watches `~/.config/noctalia/colors.json` with `inotifywait` and triggers
 
 **Requires:** `inotify-tools`
 
+## Setup
+
+### 1. Dependencies
+
+```bash
+# Core
+sudo pacman -S inotify-tools ruby kvantum-git qt6ct python3 jq kwriteconfig6
+
+# Cursor generation
+git clone https://github.com/nicehash/oreo-cursors ~/oreo-cursors
+
+# Flatpak GTK theming — allow Flatpak apps to read your GTK theme
+flatpak override --user --filesystem=xdg-config/gtk-4.0:ro
+flatpak override --user --filesystem=xdg-config/gtk-3.0:ro
+```
+
+### 2. Symlink scripts
+
+All scripts in `bin/` must be symlinked to `~/.local/bin/`:
+
+```bash
+for f in ~/dotfiles/bin/*; do
+    ln -sf "$f" ~/.local/bin/"$(basename "$f")"
+done
+```
+
+### 3. Icon source
+
+`Tela-Noctalia-Source` must be present at `~/.local/share/icons/Tela-Noctalia-Source`.
+This is a copy of a Tela colour variant with colour values normalised for recolouring.
+It is not included in this repo due to size — copy any Tela dark variant and normalise:
+
+```bash
+cp -r /usr/share/icons/Tela-dark ~/.local/share/icons/Tela-Noctalia-Source
+# Normalise: replace the variant's accent colour with #5294e2 throughout all SVGs
+# (This is the base colour the recolouring script replaces)
+```
+
+### 4. Kvantum source theme
+
+The Colloid Kvantum theme must be installed and present at
+`~/.config/Kvantum/Colloid/`. Install via:
+
+```bash
+# From AUR
+yay -S kvantum-theme-colloid-git
+# Or manually clone and copy to ~/.config/Kvantum/Colloid/
+```
+
+Create the output directory:
+
+```bash
+mkdir -p ~/.config/Kvantum/noctalia-dark
+```
+
+### 5. Qt environment
+
+In `~/.config/hypr/custom/env.conf` (or equivalent):
+
+```
+env = QT_QPA_PLATFORMTHEME,qt6ct
+```
+
+### 6. Autostart
+
+In `~/.config/hypr/custom/execs.conf`:
+
+```
+exec-once = ~/.local/bin/noctalia-borders-watch.sh
+```
+
+### 7. First run
+
+```bash
+bash ~/.local/bin/noctalia-apply.sh
+```
+
 ## Configuration
 
-`~/.config/noctalia/noctalia-apply.conf` — enable/disable modules and set cursor size:
+`~/.config/noctalia/noctalia-apply.conf` — enable/disable modules:
 
 ```bash
 ENABLE_BORDERS=true
 ENABLE_ICONS=true
 ENABLE_CURSORS=true
+ENABLE_QT=true
+ENABLE_PYWAL=false
 CURSOR_SIZE=28
 ```
 
-The `CURSOR_SIZE` value here must match `XCURSOR_SIZE` and `HYPRCURSOR_SIZE` in
-`~/.config/hypr/custom/env.conf`.
+`CURSOR_SIZE` must match `XCURSOR_SIZE` and `HYPRCURSOR_SIZE` in `env.conf`.
 
-## Setup
+## Hyprland Cursor Environment
 
-### Autostart
-Add to `~/.config/hypr/custom/execs.conf`:
-```
-exec-once = ~/.local/bin/noctalia-borders-watch.sh
-```
-
-### Hyprland cursor environment
 In `~/.config/hypr/custom/env.conf`, use the **compiled hyprcursor name**:
+
 ```
 env = XCURSOR_THEME,oreo_noctalia_<hex>_cursors
 env = XCURSOR_SIZE,28
@@ -137,42 +207,63 @@ env = HYPRCURSOR_THEME,theme_oreo_noctalia_<hex>_hyprcursor
 env = HYPRCURSOR_SIZE,28
 ```
 
-And in `~/.config/hypr/custom/execs.conf`:
+And in `execs.conf`:
+
 ```
 exec-once = hyprctl setcursor theme_oreo_noctalia_<hex>_hyprcursor 28
 ```
 
-The `theme_` prefix and `_hyprcursor` suffix are required — this is the directory
-name that `hyprcursor-util --create` produces, not the XCursor theme name.
+The `theme_` prefix and `_hyprcursor` suffix are required — this is the compiled
+directory name, not the XCursor name. Mixing them causes Hyprland to fall back
+to its built-in cursor.
 
-### Manual trigger
+## Manual Trigger
+
 ```bash
 bash ~/.local/bin/noctalia-apply.sh
 ```
 
-### Dependencies
-```bash
-sudo pacman -S inotify-tools ruby hyprcursor
-git clone https://github.com/nicehash/oreo-cursors ~/oreo-cursors
-```
-
-### Icon source
-The `Tela-Noctalia-Source` icon theme must be present at
-`~/.local/share/icons/Tela-Noctalia-Source`. This is a copy of a Tela colour
-variant with the colour values normalised ready for recolouring.
+Never run individual module scripts directly — `PRIMARY`, `TERTIARY`, `ON_SURFACE`
+etc. are only exported by `noctalia-apply.sh`. Running a module standalone will
+produce empty variables and broken/black icons.
 
 ## Clearing the Cache
 
-To force a full rebuild (e.g. after modifying source icons or changing cursor size):
+Force a full rebuild after modifying source files or changing cursor size:
 
 ```bash
 # Icons
 rm -rf ~/.local/share/icons/Tela-Noctalia-*/
-# (Tela-Noctalia-Source and Tela-Noctalia-Active will be recreated on next run)
+# Note: Source is preserved — only cached/Active variants are removed
 
-# Cursors — both formats
+# Cursors
 rm -rf ~/.local/share/icons/oreo_noctalia_*/
 rm -rf ~/.local/share/icons/theme_oreo_noctalia_*/
 
 bash ~/.local/bin/noctalia-apply.sh
 ```
+
+## Troubleshooting
+
+**Symbolic/toolbar icons are white in Qt apps**
+- Check `~/.config/qt6ct/qt6ct.conf` has `icon_theme=Tela-Noctalia-Active`
+- Check `kreadconfig6 --file kdeglobals --group Icons --key Theme` returns `Tela-Noctalia-Active`
+- Delete icon cache and rerun apply: `rm -rf ~/.local/share/icons/Tela-Noctalia-*[0-9a-f]*/`
+
+**Flatpak apps (Warehouse, Evince etc.) are unthemed**
+- Run: `flatpak override --user --filesystem=xdg-config/gtk-4.0:ro`
+- Run: `flatpak override --user --filesystem=xdg-config/gtk-3.0:ro`
+- Restart the app
+
+**Qt app menus/text are wrong colour after scheme change**
+- The kvantum kvconfig text colours are regenerated by `noctalia-kvantum.py`
+- Run `bash ~/.local/bin/noctalia-apply.sh` and relaunch the app
+- If still wrong, check `~/.config/Kvantum/noctalia-dark/noctalia-dark.kvconfig`
+  for `text.normal.color` — should match `mOnSurface` from `colors.json`
+
+**Folder icons are black after running icons script manually**
+- `TERTIARY` is empty — always run via `noctalia-apply.sh`, never standalone
+
+**Icon cache not updating after scheme change**
+- Old cache dirs named `Tela-Noctalia-<hex>` (without ON_SURFACE suffix) may exist
+- Remove them: `rm -rf ~/.local/share/icons/Tela-Noctalia-[0-9a-f]*/`
