@@ -184,6 +184,7 @@ else
     # General
     kwriteconfig6 --file kdeglobals --group "General" --key "ColorScheme" "noctalia"
     kwriteconfig6 --file kdeglobals --group "General" --key "widgetStyle" "kvantum"
+    kwriteconfig6 --file kdeglobals --group "Icons" --key "Theme" "Tela-Noctalia-Active"
 
     # Notify running KDE apps
     dbus-send --session --dest=org.kde.KWin /KWin \
@@ -212,6 +213,7 @@ if command -v kwriteconfig6 &>/dev/null; then
     _kw "Colors:Selection" "BackgroundNormal" "$primary"
     _kw "Colors:Selection" "ForegroundNormal" "$on_primary"
     kwriteconfig6 --file kdeglobals --group "General" --key "widgetStyle" "kvantum"
+    kwriteconfig6 --file kdeglobals --group "Icons" --key "Theme" "Tela-Noctalia-Active"
     dbus-send --session --dest=org.kde.KWin /KWin org.kde.KWin.reloadConfig 2>/dev/null || true
     echo "[${MODULE}] kdeglobals updated"
 fi
