@@ -16,6 +16,7 @@ ENABLE_ICONS=true
 ENABLE_CURSORS=true
 ENABLE_QT=true
 ENABLE_PYWAL=false
+ENABLE_KMAIL=true
 
 # --- Load user config if present ---------------------------------------------
 if [ -f "$CONFIG_FILE" ]; then
@@ -64,5 +65,8 @@ $ENABLE_ICONS   && run_module "icons"
 $ENABLE_CURSORS && run_module "cursors"
 $ENABLE_QT    && run_module "qt"
 $ENABLE_PYWAL && run_module "pywal"
+$ENABLE_KMAIL   && run_module "kmail"
+$ENABLE_MPV   && run_module "mpv"
 
 echo "[noctalia-apply] Done."
+bash "$HOME/.local/bin/noctalia-betterbird.sh"
