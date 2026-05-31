@@ -124,3 +124,38 @@ EOF
 
 echo "noctalia-betterbird:   ✓ noctalia-colors.css"
 echo "noctalia-betterbird: done → $OUTPUT_DIR"
+
+# ── Write tray icons ─────────────────────────────────────────────────────────
+ERROR=$(python3 -c "
+import json
+data = json.load(open('$HOME/.config/noctalia/colors.json'))
+print(data.get('mError', data.get('error', '#e46876')))
+")
+ERROR="${ERROR:-#e46876}"
+
+cat > "$OUTPUT_DIR/default.svg" << SVGEOF
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="1000" viewBox="0 0 1000 1000">
+  <rect x="80" y="220" width="840" height="560" rx="60" ry="60"
+        fill="none" stroke="$PRIMARY" stroke-width="70"/>
+  <polyline points="80,220 500,580 920,220"
+            fill="none" stroke="$PRIMARY" stroke-width="70"
+            stroke-linejoin="round" stroke-linecap="round"/>
+</svg>
+SVGEOF
+echo "noctalia-betterbird:   ✓ default.svg (tray normal)"
+
+cat > "$OUTPUT_DIR/newmail.svg" << SVGEOF
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="1000" viewBox="0 0 1000 1000">
+  <rect x="80" y="220" width="840" height="560" rx="60" ry="60"
+        fill="none" stroke="$PRIMARY" stroke-width="70"/>
+  <polyline points="80,220 500,580 920,220"
+            fill="none" stroke="$PRIMARY" stroke-width="70"
+            stroke-linejoin="round" stroke-linecap="round"/>
+  <circle cx="820" cy="220" r="140" fill="$ERROR"/>
+</svg>
+SVGEOF
+echo "noctalia-betterbird:   ✓ newmail.svg (tray new mail)"
+
+sudo cp "$OUTPUT_DIR/default.svg" /opt/betterbird/chrome/icons/default/default.svg
+sudo cp "$OUTPUT_DIR/newmail.svg" /opt/betterbird/chrome/icons/default/newmail.svg
+echo "noctalia-betterbird:   ✓ tray icons installed to /opt/betterbird"
