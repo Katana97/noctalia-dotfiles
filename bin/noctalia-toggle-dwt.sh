@@ -1,4 +1,3 @@
-cat > ~/dotfiles/bin/noctalia-toggle-dwt.sh << 'EOF'
 #!/usr/bin/env bash
 DEVICE="dell097d:00-04f3:311c-touchpad"
 STATE_FILE="/tmp/noctalia-dwt-state"
@@ -11,4 +10,3 @@ else
     echo "off" > "$STATE_FILE"
     notify-send "Touchpad" "Disable-while-typing: OFF (gaming mode)" -t 2000 --hint=int:transient:1
 fi
-EOF

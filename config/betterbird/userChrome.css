@@ -1,0 +1,77 @@
+/*
+ * Betterbird / Thunderbird 128+ Noctalia Theme
+ * Dynamic colours are written to noctalia-colors.css by noctalia-betterbird.sh
+ * and imported below — re-run the script whenever your Noctalia palette changes.
+ *
+ * NOTE: Do NOT add @namespace or @-moz-document here — they break loading in Betterbird-bin.
+ */
+
+/* ── Dynamic colours (primary, surface) written by noctalia-betterbird.sh ── */
+@import url("file:///home/david/.config/betterbird/noctalia-icons/noctalia-colors.css");
+
+/* ── Folder pane icon base styles ───────────────────────────────────────── */
+#folderTree li > .container > .icon {
+  mask-image: none !important;
+  background-color: transparent !important;
+  background-repeat: no-repeat !important;
+  background-position: center !important;
+  background-size: contain !important;
+}
+
+/* ── Account root rows ──────────────────────────────────────────────────── */
+#folderTree li[data-server-type] > .container > .icon {
+  background-image: url("file:///home/david/.config/betterbird/noctalia-icons/account.svg") !important;
+}
+
+/* ── Typed system folders ───────────────────────────────────────────────── */
+#folderTree li[data-folder-type="inbox"] > .container > .icon {
+  background-image: url("file:///home/david/.config/betterbird/noctalia-icons/inbox.svg") !important;
+}
+#folderTree li[data-folder-type="drafts"] > .container > .icon {
+  background-image: url("file:///home/david/.config/betterbird/noctalia-icons/drafts.svg") !important;
+}
+#folderTree li[data-folder-type="sent"] > .container > .icon {
+  background-image: url("file:///home/david/.config/betterbird/noctalia-icons/sent.svg") !important;
+}
+#folderTree li[data-folder-type="trash"] > .container > .icon {
+  background-image: url("file:///home/david/.config/betterbird/noctalia-icons/trash.svg") !important;
+}
+#folderTree li[data-folder-type="junk"] > .container > .icon,
+#folderTree li[data-folder-type="spam"] > .container > .icon {
+  background-image: url("file:///home/david/.config/betterbird/noctalia-icons/spam.svg") !important;
+}
+#folderTree li[data-folder-type="archive"] > .container > .icon {
+  background-image: url("file:///home/david/.config/betterbird/noctalia-icons/archive.svg") !important;
+}
+#folderTree li[data-folder-type="outbox"] > .container > .icon {
+  background-image: url("file:///home/david/.config/betterbird/noctalia-icons/outbox.svg") !important;
+}
+#folderTree li[data-folder-type="templates"] > .container > .icon {
+  background-image: url("file:///home/david/.config/betterbird/noctalia-icons/templates.svg") !important;
+}
+#folderTree li[data-folder-type="starred"] > .container > .icon,
+#folderTree li[data-folder-type="flagged"] > .container > .icon {
+  background-image: url("file:///home/david/.config/betterbird/noctalia-icons/starred.svg") !important;
+}
+
+/* ── Plain user folders ─────────────────────────────────────────────────── */
+#folderTree li:not([data-folder-type]):not([data-server-type]) > .container > .icon {
+  background-image: url("file:///home/david/.config/betterbird/noctalia-icons/folder.svg") !important;
+}
+
+/* Unread folder text */
+#folderTree .container-line[data-is-unread="true"] .name,
+#folderTree li.hasUnread > .container .name {
+  color: var(--folder-pane-unread-color) !important;
+}
+
+/* ── Override hardcoded Thunderbird blue ────────────────────────────────── */
+:root {
+  --color-blue-30: var(--spaces-button-text-color, #76946a) !important;
+  --color-blue-40: var(--spaces-button-text-color, #76946a) !important;
+  --color-blue-50: var(--spaces-button-text-color, #76946a) !important;
+  --color-blue-60: var(--spaces-button-text-color, #76946a) !important;
+  --color-blue-70: var(--spaces-button-text-color, #76946a) !important;
+  --link-color: var(--spaces-button-text-color, #76946a) !important;
+  --focus-outline-color: var(--spaces-button-text-color, #76946a) !important;
+}

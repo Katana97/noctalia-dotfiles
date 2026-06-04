@@ -8,7 +8,9 @@ cp ~/.config/hypr/hyprlock.conf hypr/
 cp ~/.local/bin/noctalia-apply.sh bin/
 cp ~/.local/bin/noctalia-icons.sh bin/
 cp ~/.local/bin/noctalia-borders-watch.sh bin/
+cp ~/.local/bin/noctalia-betterbird.sh bin/
 cp ~/.local/bin/noctalia-cursors.sh bin/ 2>/dev/null
+cp ~/.thunderbird/2sw5auhu.default-default/chrome/userChrome.css config/betterbird/
 cp ~/.config/gtk-3.0/settings.ini config/gtk-3.0/
 cp ~/.config/gtk-4.0/settings.ini config/gtk-4.0/
 cp ~/.config/noctalia/colors.json config/noctalia/
