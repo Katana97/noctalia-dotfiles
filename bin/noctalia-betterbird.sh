@@ -32,6 +32,13 @@ print(data.get('mPrimary', data.get('primary', '#7c9cbf')))
 ")
 
 
+SURFACE_VARIANT=$(python3 -c "
+import json
+data = json.load(open('$COLORS_FILE'))
+print(data.get('mSurfaceVariant', data.get('surfaceVariant', '#1f1f28')))
+")
+SURFACE_VARIANT="${SURFACE_VARIANT:-#1f1f28}"
+
 SURFACE=$(python3 -c "
 import json
 data = json.load(open('$COLORS_FILE'))
@@ -114,6 +121,16 @@ cat > "$OUTPUT_DIR/noctalia-colors.css" << EOF
   --spaces-button-text-color: $PRIMARY !important;
   /* Unread folder text colour */
   --folder-pane-unread-color: $PRIMARY !important;
+  /* Message card and tree view background */
+  --tree-card-background: $SURFACE_VARIANT !important;
+  --tree-view-bg: $SURFACE_VARIANT !important;
+  --layout-background-0: $SURFACE_VARIANT !important;
+  --tree-pane-background: $SURFACE !important;
+
+  /* Message list pane background */
+  --thread-pane-background: $SURFACE_VARIANT !important;
+  --listbox-background: $SURFACE_VARIANT !important;
+
   /* Folder pane background to match Noctalia surface */
   --folderpane-background: $SURFACE !important;
   --color-blue-30: $PRIMARY !important;
