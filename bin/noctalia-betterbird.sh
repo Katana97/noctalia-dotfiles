@@ -32,6 +32,13 @@ print(data.get('mPrimary', data.get('primary', '#7c9cbf')))
 ")
 
 
+ON_PRIMARY=$(python3 -c "
+import json
+data = json.load(open('$COLORS_FILE'))
+print(data.get('mOnPrimary', '#ffffff'))
+")
+ON_PRIMARY="${ON_PRIMARY:-#ffffff}"
+
 SURFACE_VARIANT=$(python3 -c "
 import json
 data = json.load(open('$COLORS_FILE'))
@@ -121,6 +128,10 @@ cat > "$OUTPUT_DIR/noctalia-colors.css" << EOF
   --spaces-button-text-color: $PRIMARY !important;
   /* Unread folder text colour */
   --folder-pane-unread-color: $PRIMARY !important;
+  /* New Message button text colour */
+  --button-primary-text-color: $ON_PRIMARY !important;
+  --button-text-color-primary: $ON_PRIMARY !important;
+
   /* Message card and tree view background */
   --tree-card-background: $SURFACE_VARIANT !important;
   --tree-view-bg: $SURFACE_VARIANT !important;

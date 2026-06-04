@@ -75,3 +75,53 @@
   --link-color: var(--spaces-button-text-color, #76946a) !important;
   --focus-outline-color: var(--spaces-button-text-color, #76946a) !important;
 }
+
+
+
+/* ── New Message button ── */
+#folderPaneWriteMessage {
+  background-color: transparent !important;
+  font-size: 0 !important;
+  min-width: 32px !important;
+  min-height: 32px !important;
+  border-radius: 6px !important;
+  background-image: none !important;
+  mask-image: url("file:///usr/share/icons/Adwaita/symbolic/actions/mail-message-new-symbolic.svg") !important;
+  mask-size: 24px !important;
+  mask-repeat: no-repeat !important;
+  mask-position: center !important;
+  background: var(--folder-pane-unread-color) !important;
+  -webkit-mask-image: url("file:///usr/share/icons/Adwaita/symbolic/actions/mail-message-new-symbolic.svg") !important;
+  -webkit-mask-size: 24px !important;
+  -webkit-mask-repeat: no-repeat !important;
+  -webkit-mask-position: center !important;
+  transition: opacity 0.15s ease !important;
+  opacity: 0.8 !important;
+}
+#folderPaneWriteMessage:hover {
+  opacity: 1 !important;
+  background: var(--folder-pane-unread-color) !important;
+}
+
+/* ── Get Messages button ── */
+#folderPaneGetMessages {
+  background-image: none !important;
+  min-width: 32px !important;
+  min-height: 32px !important;
+  border-radius: 6px !important;
+  mask-image: url("file:///usr/share/icons/Adwaita/symbolic/actions/mail-send-receive-symbolic.svg") !important;
+  mask-size: 24px !important;
+  mask-repeat: no-repeat !important;
+  mask-position: center !important;
+  background: var(--folder-pane-unread-color) !important;
+  -webkit-mask-image: url("file:///usr/share/icons/Adwaita/symbolic/actions/mail-send-receive-symbolic.svg") !important;
+  -webkit-mask-size: 24px !important;
+  -webkit-mask-repeat: no-repeat !important;
+  -webkit-mask-position: center !important;
+  transition: opacity 0.15s ease !important;
+  opacity: 0.8 !important;
+}
+#folderPaneGetMessages:hover {
+  opacity: 1 !important;
+  background: var(--folder-pane-unread-color) !important;
+}
