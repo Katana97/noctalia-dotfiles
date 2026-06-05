@@ -69,3 +69,4 @@ $ENABLE_KONSOLE && run_module "konsole"
 $ENABLE_MPV   && run_module "mpv"
 
 echo "[noctalia-apply] Done."
+bash "$HOME/.local/bin/noctalia-betterbird.sh" </dev/null

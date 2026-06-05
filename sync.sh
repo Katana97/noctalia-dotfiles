@@ -5,7 +5,7 @@ cd ~/dotfiles
 cp -r ~/.config/hypr/custom/* hypr/custom/
 cp ~/.config/hypr/hypridle.conf hypr/
 cp ~/.config/hypr/hyprlock.conf hypr/
-cp ~/.local/bin/noctalia-apply.sh bin/
+
 cp ~/.local/bin/noctalia-icons.sh bin/
 cp ~/.local/bin/noctalia-borders-watch.sh bin/
 cp ~/.local/bin/noctalia-betterbird.sh bin/
