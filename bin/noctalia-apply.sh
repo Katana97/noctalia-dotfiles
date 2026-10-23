@@ -16,7 +16,7 @@ ENABLE_ICONS=true
 ENABLE_CURSORS=true
 ENABLE_QT=true
 ENABLE_PYWAL=false
-ENABLE_KONSOLE=true
+ENABLE_KONSOLE=false
 
 # --- Load user config if present ---------------------------------------------
 if [ -f "$CONFIG_FILE" ]; then
@@ -41,6 +41,7 @@ export PRIMARY=$(jq -r '.mPrimary'        "$COLORS_FILE" | tr -d '#')
 export TERTIARY=$(jq -r '.mTertiary'      "$COLORS_FILE" | tr -d '#')
 export SURFACE=$(jq -r '.mSurfaceVariant' "$COLORS_FILE" | tr -d '#')
 export ON_SURFACE=$(jq -r '.mOnSurface'   "$COLORS_FILE" | tr -d '#')
+export ON_SURFACE_VARIANT=$(jq -r '.mOnSurfaceVariant' "$COLORS_FILE" | tr -d '#')
 
 if [ -z "$PRIMARY" ] || [ "$PRIMARY" = "null" ]; then
     echo "[noctalia-apply] ERROR: Could not read colours from $COLORS_FILE"
