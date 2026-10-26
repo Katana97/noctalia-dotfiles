@@ -34,3 +34,4 @@ done
 gsettings set org.gnome.desktop.interface icon-theme "$ICON_THEME" 2>/dev/null
 
 echo "[${MODULE}] scheme='${NAME}' mode=${MODE} -> ${ICON_THEME}"
+echo "$(date +%T) scheme='${NAME}' source=${SOURCE} mode=${MODE} -> ${ICON_THEME}" >> "$HOME/.cache/noctalia-icontheme.log"

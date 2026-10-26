@@ -1,0 +1,3 @@
+{{ colors.tertiary.default.hex }}
+{{ colors.tertiary.default.hex | darken 20 }}
+{{ colors.surface.default.hex }}

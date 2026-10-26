@@ -16,6 +16,7 @@ colors.json → noctalia-apply.sh → noctalia-borders.sh
                                 → noctalia-icons.sh
                                 → noctalia-cursors.sh
                                 → noctalia-qt.sh  (→ noctalia-kvantum.py)
+                                → noctalia-icontheme.sh  (Gruvbox → Gruvbox Plus icons, else Tela)
                                 → noctalia-pywal.sh  (optional)
 ```
 
@@ -267,3 +268,40 @@ bash ~/.local/bin/noctalia-apply.sh
 **Icon cache not updating after scheme change**
 - Old cache dirs named `Tela-Noctalia-<hex>` (without ON_SURFACE suffix) may exist
 - Remove them: `rm -rf ~/.local/share/icons/Tela-Noctalia-[0-9a-f]*/`
+
+## What triggers the scripts (Noctalia v5)
+
+`config/noctalia/user-templates.toml` defines a `dotfiles-colors` template. When the
+colour scheme changes, Noctalia renders it to `~/.config/noctalia/colors.json` and
+its `post_hook` runs `noctalia-apply.sh`. Copy `user-templates.toml` and
+`config/noctalia/templates/dotfiles-colors.json` to `~/.config/noctalia/` (the
+templates go in a `templates/` subfolder) on a new machine.
+
+`user-templates.toml` also contains an `sddm` template that writes into the SDDM
+theme directory. If that theme is not installed, delete that block.
+
+`noctalia-borders-watch.sh` is the older file-watcher trigger. On this v5 setup the
+template hook above is what runs the scripts.
+
+The first time a colour palette is used, `noctalia-icons.sh` builds and recolours a
+new cached copy of the Tela icons (about 210 MB each). This takes a minute or two, and
+later switches to that palette are instant.
+
+## Icon theme switching (`noctalia-icontheme.sh`)
+
+Runs after the Qt module. Reads the active scheme name from the `[theme]` section
+of `~/.local/state/noctalia/settings.toml`. If the name contains "gruvbox" (any
+case) it selects `Gruvbox-Plus-Dark`, or `Gruvbox-Plus-Light` in light mode. For any
+other scheme it selects `Tela-Noctalia-Active`. It writes the choice to `kdeglobals`,
+`qt6ct.conf`, GTK `settings.ini` and gsettings, overriding the Tela default that
+`noctalia-qt.sh` sets. If Gruvbox Plus is not installed it falls back to Tela. Each
+decision is logged to `~/.cache/noctalia-icontheme.log`.
+
+The Gruvbox folder colour comes from the `gruvbox-plus-icons` Noctalia community
+template. The copy in `config/noctalia/community-templates/gruvbox-plus-icons/colors`
+uses the tertiary colour instead of the stock primary. After ticking the template in
+Noctalia (Settings, Templates, Community Templates), copy it into place:
+
+    cp config/noctalia/community-templates/gruvbox-plus-icons/colors \
+       ~/.local/state/noctalia/community-templates/gruvbox-plus-icons/colors
+    noctalia msg templates-apply
