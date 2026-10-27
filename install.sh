@@ -72,6 +72,9 @@ fi
 
 echo ""
 
+echo "==> Installing icon themes..."
+bash "$DOTFILES_DIR/install-icons.sh"
+
 # --- 4. Icon source ----------------------------------------------------------
 echo "==> Checking icon source..."
 
