@@ -82,8 +82,8 @@ if [ ! -d "$ICONS_DIR/Tela-Noctalia-Source" ]; then
     echo "    WARNING: Tela-Noctalia-Source not found at $ICONS_DIR/Tela-Noctalia-Source"
     echo "    This must be set up manually:"
     echo "      1. Copy a Tela dark variant:"
-    echo "         cp -r /usr/share/icons/Tela-dark $ICONS_DIR/Tela-Noctalia-Source"
-    echo "      2. Normalise accent colour to #5294e2 throughout all SVGs"
+    echo "         cp -rL /usr/share/icons/Tela-dark $ICONS_DIR/Tela-Noctalia-Source"
+    echo "      2. Remove the FollowsColorScheme=true line from its index.theme"
     echo "    See THEMING.md for details."
 else
     echo "    Tela-Noctalia-Source found."

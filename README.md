@@ -24,7 +24,7 @@ sudo pacman -S inotify-tools ruby hyprcursor xorg-xcursorgen librsvg
 # Cursor source repo
 git clone https://github.com/nicehash/oreo-cursors ~/oreo-cursors
 
-# Icon source (copy a Tela colour variant, normalise colour values)
+# Icon source: built by install-icons.sh (a copy of Tela-dark)
 # See THEMING.md for details
 
 # Run manually

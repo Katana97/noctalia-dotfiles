@@ -134,14 +134,21 @@ done
 ### 3. Icon source
 
 `Tela-Noctalia-Source` must be present at `~/.local/share/icons/Tela-Noctalia-Source`.
-This is a copy of a Tela colour variant with colour values normalised for recolouring.
-It is not included in this repo due to size — copy any Tela dark variant and normalise:
+It is a copy of the stock `Tela-dark` theme and is built automatically by
+`install-icons.sh`. It is not included in this repo due to size (about 210 MB).
+
+To build it by hand:
 
 ```bash
-cp -r /usr/share/icons/Tela-dark ~/.local/share/icons/Tela-Noctalia-Source
-# Normalise: replace the variant's accent colour with #5294e2 throughout all SVGs
-# (This is the base colour the recolouring script replaces)
+cp -rL /usr/share/icons/Tela-dark ~/.local/share/icons/Tela-Noctalia-Source
+sed -i '/^FollowsColorScheme=true/d' ~/.local/share/icons/Tela-Noctalia-Source/index.theme
 ```
+
+`-L` resolves the theme's symlinks into real files, so the recolouring script edits
+real files. The `sed` removes the `FollowsColorScheme=true` line from `index.theme`,
+the only change from stock Tela-dark in the working setup. The recolouring script
+replaces Tela's default blue (`#5294e2`) with the scheme's colour, so no other
+normalising is needed.
 
 ### 4. Kvantum source theme
 
