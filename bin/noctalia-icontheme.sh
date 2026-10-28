@@ -13,6 +13,7 @@ MODE=$(get mode)
 case "$SOURCE" in
     community) NAME=$(get community_palette) ;;
     builtin)   NAME=$(get builtin) ;;
+    custom)    NAME=$(get custom_palette) ;;
     *)         NAME="" ;;
 esac
 
