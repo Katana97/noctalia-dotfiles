@@ -16,8 +16,8 @@ notifications|icon_color|#d65d0e|secondary
 launcher|icon_color|#d65d0e|tertiary
 clock|color|secondary|-
 session|color|error|-
-workspaces|occupied_color|#79740e|-
-workspaces|focused_color|#d79921|-
+workspaces|occupied_color|primary|-
+workspaces|focused_color|secondary|-
 workspaces|empty_color|-|-
 control-center|icon_color|tertiary|tertiary'
 
