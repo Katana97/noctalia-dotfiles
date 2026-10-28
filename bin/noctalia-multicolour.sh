@@ -16,7 +16,10 @@ notifications|icon_color|#d65d0e|secondary
 launcher|icon_color|#d65d0e|tertiary
 clock|color|secondary|-
 session|color|error|-
-workspaces|occupied_color|#458588|-'
+workspaces|occupied_color|#79740e|-
+workspaces|focused_color|#d79921|-
+workspaces|empty_color|-|-
+control-center|icon_color|tertiary|tertiary'
 
 set_key() { # widget key value
   sed -i "/^\[widget\.$1\]/,/^\[/{/^$2 = /d}" "$F"
