@@ -66,6 +66,7 @@ $ENABLE_ICONS   && run_module "icons"
 $ENABLE_CURSORS && run_module "cursors"
 $ENABLE_QT    && run_module "qt"
 run_module "icontheme"
+"$HOME/.local/bin/noctalia-multicolour.sh" refresh || true
 $ENABLE_PYWAL && run_module "pywal"
 $ENABLE_KONSOLE && run_module "konsole"
 $ENABLE_MPV   && run_module "mpv"
