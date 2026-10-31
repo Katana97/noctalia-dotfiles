@@ -1,0 +1,59 @@
+@import "/home/david/.cache/noctalia/zen-browser/zen-userChrome.css";
+
+/* Unified UI font. Change these three values to tune everything at once. */
+:root {
+  --my-ui-font: "IBM Plex Sans", sans-serif;
+  --my-ui-size: 11pt;
+  --my-ui-weight: 400;
+}
+
+/* Address bar and dropdown */
+#urlbar, #urlbar-input, .urlbar-input-box, .urlbarView, .urlbarView-row {
+  font-family: var(--my-ui-font) !important;
+  font-size: var(--my-ui-size) !important;
+  font-weight: var(--my-ui-weight) !important;
+}
+
+/* Tabs panel */
+.tabbrowser-tab .tab-label, .tab-label, #zen-sidebar-top-buttons, .zen-current-workspace-indicator-name {
+  font-family: var(--my-ui-font) !important;
+  font-size: var(--my-ui-size) !important;
+  font-weight: var(--my-ui-weight) !important;
+}
+
+/* Context menus and Application Menu */
+menupopup, menupopup menuitem, menupopup menu, menupopup .menu-text,
+panel, panelview, .subviewbutton, .subviewbutton .toolbarbutton-text,
+.panel-subview-body, #appMenu-viewCache toolbarbutton, .panel-header {
+  font-family: var(--my-ui-font) !important;
+  font-size: var(--my-ui-size) !important;
+  font-weight: var(--my-ui-weight) !important;
+}
+
+/* Catch-all for popups: context menus, Application Menu, submenus */
+menupopup, menupopup *,
+panel, panel *,
+panelview, panelview * {
+  font-family: var(--my-ui-font) !important;
+  font-size: var(--my-ui-size) !important;
+  font-weight: var(--my-ui-weight) !important;
+}
+
+/* Menu text colour to match the rest of the UI */
+:root {
+  --panel-color: var(--toolbar-color) !important;
+  --arrowpanel-color: var(--toolbar-color) !important;
+}
+menupopup, menupopup menuitem, menupopup menu, menupopup .menu-text {
+  color: var(--toolbar-color) !important;
+}
+
+/* Application Menu text colour to match the right-click menu */
+panelview .subviewbutton,
+panelview .subviewbutton .toolbarbutton-text,
+panelview .panel-header,
+panelview .panel-subview-body toolbarbutton,
+#appMenu-viewCache .subviewbutton,
+#appMenu-viewCache .toolbarbutton-text {
+  color: var(--text, var(--toolbar-color)) !important;
+}
